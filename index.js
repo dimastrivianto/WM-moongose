@@ -12,6 +12,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/mongoose-test', {//mongoose-test nam
 })
 
 //IMPORT MODELS
+//pengganti db.collection
 const User= require('./src/models/userModel')
 
 
@@ -47,34 +48,50 @@ app.get('/users', async (req, res)=>{
 //{error : "User dengan id 989999 tidak ditemukan"}
 app.get('/findbyid', async (req, res)=>{
     try {
+        //let id bisa diletakkan diluar try agar bisa diakses di catch juga
+        //bisa juga pakai params
+        //pembeda antara query dan params hanya dibanyaknya data, kalau mau mengirim banyak data sebaiknya pakai query saja , karena kalau params urlnya kebanyakan /:.../:../:..,  akan tetapi keduanya akan tetap bekerja
         let id = req.query.id
         let user = await User.findById(id)
+        //jika user tidak
+        if(!user){
+            return res.send({error: `User dengan id: ${id} tidak ditemukan`})
+        }
         res.send(user)
     } catch (err) {
-        res.send({error: `User dengan id: ${req.query.id} tidak ditemukan`})
+        res.send(err)
     }
 })
 
 //Update User By Id
 app.patch('/user/:_id', async (req, res)=>{
+    let _id = req.params._id
     try {
-        let _id = req.params._id
         let newName = req.body.newname
         let user = await User.updateOne({_id}, {$set: {name: newName}})
+        if(!user){
+            return res.send({error: `User dengan id: ${_id} tidak ditemukan`})
+        }
         res.send(user)
     } catch (error) {
-        res.send({error: `User dengan id: ${req.params._id} tidak ditemukan`})
+        res.send(error)
     }
 })
 
 //Delete User By Id
 app.delete('/user/:_id', async (req,res)=>{
+    let _id = req.params._id
     try {
-        let _id = req.params._id
-        let user = await User.deleteOne({_id})
-        res.send(user)
+        let user = await User.findByIdAndDelete({_id})
+        if(!user){
+            return res.send({error: `User dengan id: ${_id} tidak ditemukan`})
+        }
+        res.send({
+            message: `User berhasil dihapus`,
+            user
+        })
     } catch (error) {
-        res.send({error: `User dengan id: ${req.params._id} tidak ditemukan`})
+        res.send(error)
     }
 })
 
