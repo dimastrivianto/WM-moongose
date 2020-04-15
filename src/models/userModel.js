@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const validator = require('validator')
+const bcrypt = require('bcryptjs')
 
 
 //bikin object baru dengan menggunakan keyword new
@@ -57,8 +58,26 @@ const userSchema = new mongoose.Schema({
     }
 })
 
+
+userSchema.pre('save', async function(next) {//mengganti password sebelum di save ke dalam database
+    //this isinya adalah object data yang kita input {username: "dimas", password: "satutujuh", .....}
+    let user = this
+
+    try {
+        user.password = await bcrypt.hash(user.password, 8)
+    } catch (error) {
+        throw new Error('Problem when hash password')
+    }
+
+    //karena sebelum kita save .pre() dijalankan dahulu untuk mengubah password, saat udah selesai jalankan next untuk menjalankan proses selanjutnya, yaitu menyimpan data ke dalam database
+    next()
+})
+
+
+//berada dibawah semua proses didalam schema
 //nama dari collection kita ('User')
 const User = mongoose.model('User', userSchema)
 
+//modul.exports harus berada dipaling bawah
 //untuk export data
 module.exports = User

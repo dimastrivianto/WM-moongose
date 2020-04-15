@@ -64,19 +64,20 @@ app.get('/findbyid', async (req, res)=>{
 })
 
 //Update User By Id
-app.patch('/user/:_id', async (req, res)=>{
+app.patch('/user/:_id', (req, res)=>{
     let _id = req.params._id
-    try {
-        let newName = req.body.newname
-        let user = await User.updateOne({_id}, {$set: {name: newName}})
-        if(!user){
-            return res.send({error: `User dengan id: ${_id} tidak ditemukan`})
+    let body = req.body
+
+    //dengan menggunakan callback yang merupakan es5
+    User.findByIdAndUpdate(_id, body, function(err, resp){
+        if(err){
+            return res.send(err)
         }
-        res.send(user)
-    } catch (error) {
-        res.send(error)
-    }
+        res.send(resp)
+    })
+        
 })
+
 
 //Delete User By Id
 app.delete('/user/:_id', async (req,res)=>{
@@ -84,7 +85,7 @@ app.delete('/user/:_id', async (req,res)=>{
     try {
         let user = await User.findByIdAndDelete({_id})
         if(!user){
-            return res.send({error: `User dengan id: ${_id} tidak ditemukan`})
+            return res.send({error: `User dengan id: ${_id} tidak ditemukan di database`})
         }
         res.send({
             message: `User berhasil dihapus`,
