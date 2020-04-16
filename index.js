@@ -1,8 +1,11 @@
 //CONFIG EXPRESS
 const express = require('express')
+const cors = require('cors')
 const app= express()
 const port = 2020
 
+app.use(cors())
+app.use(express.json())
 //CONFIG MONGOOSE
 const mongoose = require('mongoose')
 mongoose.connect('mongodb://127.0.0.1:27017/mongoose-test', {//mongoose-test nama database
@@ -14,9 +17,10 @@ mongoose.connect('mongodb://127.0.0.1:27017/mongoose-test', {//mongoose-test nam
 //IMPORT MODELS
 //pengganti db.collection
 const User= require('./src/models/userModel')
+const Task= require('./src/models/taskModel')
 
 
-app.use(express.json())
+
 
 //IMPORT HOME
 app.get('/', (req, res) =>{
@@ -61,6 +65,24 @@ app.get('/findbyid', async (req, res)=>{
     } catch (err) {
         res.send(err)
     }
+})
+
+// LOGIN USER
+//menggunakan post walaupun sedang meng'GET' data agar data yang diambil tidak muncul di link (karena data pada saat login sensitif)
+//kalau ditembak langsung data bisa muncul
+app.post('/user/login', async (req, res) => {
+    // req.body = {email : ... , password: ...}
+    let {email, password} = req.body
+
+    try {
+        let user = await User.loginByEmailPassword(email,password)
+        //jika berhasil maka akan berisi data user
+        res.send(user)
+    } catch (err) {
+        // jika gagal akan berisi pesan err
+        res.send({err_message : err.message})
+    }
+
 })
 
 //Update User By Id
@@ -115,6 +137,24 @@ app.post('/users', async (req,res)=>{
     // user.save().then(resp => res.send(resp)).catch(err => res.send(err))
 })
 
+
+// TASK
+app.post('/tasks/:userid', async (req, res) => {
+    let owner= req.params.userid
+    let description = req.body.description
+
+    //task = {_id : 14 , description : memancing, completed : false, owner : 333}
+    let task =new Task({description, owner})
+    //user = {_id: 333, username : dimas, tasks: []}
+    let user = await User.findById(owner)
+    user.tasks.push(task._id)
+
+    await task.save()
+    await user.save()
+
+    res.send({task})
+    // res.send({user, task})
+})
 
 
 app.listen(port, ()=>{console.log('Success Running')})
