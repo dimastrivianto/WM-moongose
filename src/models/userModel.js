@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
         type: String,// Mengatur tipe data yang disimpan
         unique: true,// Tidak boleh duplicate
         required: true,//Wajib di isi
-        set : (val) => {return val.replace(/ /g, "")},// merubah semua space diantara karakter dengan string kosong
+        set : val => val.replace(/ /g, ""),// merubah semua space diantara karakter dengan string kosong
         validate(value){//Handle jika yang di input user bukan sebuah string, gunanya juga untuk membolehkan atau tidak
             let result = isNaN(parseInt(value))
             if(!result){
@@ -60,7 +60,7 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref : 'Task'
     }]
-})
+}, {timestamps: true})
 
 //Kapanpun kita menjalankan "res.send" , method JSON.stringify() akan dirunning terlebih dahulu, kemudian method toJSON() akan dipanggil, baru setelahnya res.send
 //kita dapat menentukan operasi apa yang akan dijalankan di dalam toJSON, dalam hal ini menghapus property password dan __v
@@ -96,7 +96,7 @@ userSchema.statics.loginByEmailPassword= async (email, password) => {
     let user = await User.findOne({email})
 
     //jika user tidak ditemukan
-    if(!user) throw new Error('Unable to login')
+    if(!user) throw new Error('User tidak ditemukan')
 
     //Compare password yang di input user dengan password yang ada di database
     let match = await bcrypt.compare(password, user.password)

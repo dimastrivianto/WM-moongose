@@ -75,7 +75,7 @@ app.post('/user/login', async (req, res) => {
     let {email, password} = req.body
 
     try {
-        let user = await User.loginByEmailPassword(email,password)
+        let user = await User.loginByEmailPassword(email, password)
         //jika berhasil maka akan berisi data user
         res.send(user)
     } catch (err) {
@@ -118,7 +118,7 @@ app.delete('/user/:_id', async (req,res)=>{
     }
 })
 
-//Create new user
+//Create new user, REGISTER
 app.post('/users', async (req,res)=>{
     //req.body ={username: 'dimas', name: 'Dimas', age: 29}
 
