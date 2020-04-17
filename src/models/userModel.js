@@ -56,6 +56,9 @@ const userSchema = new mongoose.Schema({
         default: 0, // default value
         set: val => parseInt(val)
     },
+    avatar : {
+        type: Buffer
+    },
     tasks: [{
         type: mongoose.Schema.Types.ObjectId,
         ref : 'Task'
@@ -81,7 +84,9 @@ userSchema.pre('save', async function(next) {//mengganti password sebelum di sav
     let user = this
 
     try {
+        if(user.isModified('password')){ 
         user.password = await bcrypt.hash(user.password, 8)
+        }
     } catch (error) {
         throw new Error('Problem when hash password')
     }
