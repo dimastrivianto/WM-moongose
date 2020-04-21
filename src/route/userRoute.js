@@ -1,5 +1,6 @@
 const express = require('express')
 const router = new express.Router()
+const sharp = require('sharp')
 
 //IMPORT MODELS
 //pengganti db.collection
@@ -9,31 +10,56 @@ const User= require('../models/userModel')
 const multer = require('multer')
 const upload = multer({
     limits : {
-        fileSize : 1000000//byte
+        fileSize : 10000000//byte
     },
     fileFilter(req, file, cb) {
         //file = {fieldname: avatar, originalname: 'maxresdefault.jpg'}
         //$ penanda bahwa kata terakhir
         // \. apapun yang ada didepannya(bebas)
-        if(file.originalname.match(/\.(jpg|jpeg|png)$/)){
+        if(!file.originalname.match(/\.(jpg|jpeg|png)$/)){
             return cb(new Error('File harus berupa jpg, jpeg, png'))
         }
         cb(null, true)
     }
 })
 
-//UPLOAD FOTO
+//UPLOAD AVATAR
 //upload.single('avatar') harus sama dengan d body form data, kemungkinan juga sama dengan react 
 router.post('/users/avatar/:userid', upload.single('avatar'), async (req, res) => {
     try {
+
+        //Edit avatar : resize, convert ke png
+        let avatar = await sharp(req.file.buffer).resize({width: 250}).png().toBuffer()
+
         //req.file = {fieldname, originalname, buffer}
         let user = await User.findById(req.params.userid)
-        user.avatar = req.file.buffer
+        //menyimpan gambar dalam bentuk buffer
+        user.avatar = avatar
         // res.send(req.file.originalname)
+        //menyimpan user setelah ada perubahan (menyimpan gambar)
         await user.save()
+        //mengirim respon ke client
         res.send('Upload success')
     } catch (err) {
+        //mengirim error
         res.send(err)
+    }
+}, (err, req, res, next) => {
+    res.send(err.message)
+})
+
+//Read avatar
+router.get('/user/avatar/:userid', async (req, res) => {
+    try {
+        let user = await User.findById(req.params.userid)
+        //jika user belum memiliki avatar
+        if(!user.avatar) return res.send('No image')
+        //config untuk mengirim avatar
+        res.set('content-type', 'image/png')
+        //kirim avatar
+        res.send(user.avatar)
+    } catch (error) {
+        res.send(error)
     }
 })
 
@@ -58,18 +84,19 @@ router.get('/users', async (req, res)=>{
 
 //Read One User By Id
 //{error : "User dengan id 989999 tidak ditemukan"}
-router.get('/findbyid', async (req, res)=>{
+router.get('/findbyid/:id', async (req, res)=>{
+    let id = req.params.id
     try {
         //let id bisa diletakkan diluar try agar bisa diakses di catch juga
         //bisa juga pakai params
         //pembeda antara query dan params hanya dibanyaknya data, kalau mau mengirim banyak data sebaiknya pakai query saja , karena kalau params urlnya kebanyakan /:.../:../:..,  akan tetapi keduanya akan tetap bekerja
-        let id = req.query.id
         let user = await User.findById(id)
         //jika user tidak
         if(!user){
             return res.send({error: `User dengan id: ${id} tidak ditemukan`})
         }
-        res.send(user)
+        //tambahkan new Date() agar pada saat gambar di update dia akan langsung ganti tanpa harus di refresh dahulu(karena ngambil dengan menggunakan path yang sama maka waktu disini akan menjadi pembaeda)
+        res.send({user, photo : `http://localhost:2020/user/avatar/${id}?time=` +new Date(),})
     } catch (err) {
         res.send(err)
     }

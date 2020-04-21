@@ -8,7 +8,7 @@ const taskSchema =new mongoose.Schema({
         validate(value){//Handle jika yang di input user bukan sebuah string, gunanya juga untuk membolehkan atau tidak
             let result = isNaN(parseInt(value))
             if(!result){
-                throw new Error("Username tidak boleh angka")
+                throw new Error("Input tidak boleh ada angka")
             }
         }
     },

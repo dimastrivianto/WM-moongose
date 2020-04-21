@@ -18,7 +18,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/mongoose-test', {//mongoose-test nam
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex : true
-})
+}, () => {console.log('connected to db')}) 
 
 
 //IMPORT HOME
