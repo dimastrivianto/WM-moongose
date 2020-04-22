@@ -39,7 +39,7 @@ router.post('/users/avatar/:userid', upload.single('avatar'), async (req, res) =
         //menyimpan user setelah ada perubahan (menyimpan gambar)
         await user.save()
         //mengirim respon ke client
-        res.send('Upload success')
+        res.send(...req.body)
     } catch (err) {
         //mengirim error
         res.send(err)
@@ -91,12 +91,12 @@ router.get('/findbyid/:id', async (req, res)=>{
         //bisa juga pakai params
         //pembeda antara query dan params hanya dibanyaknya data, kalau mau mengirim banyak data sebaiknya pakai query saja , karena kalau params urlnya kebanyakan /:.../:../:..,  akan tetapi keduanya akan tetap bekerja
         let user = await User.findById(id)
-        //jika user tidak
+        //jika user tidak ada
         if(!user){
             return res.send({error: `User dengan id: ${id} tidak ditemukan`})
         }
-        //tambahkan new Date() agar pada saat gambar di update dia akan langsung ganti tanpa harus di refresh dahulu(karena ngambil dengan menggunakan path yang sama maka waktu disini akan menjadi pembaeda)
-        res.send({user, photo : `http://localhost:2020/user/avatar/${id}?time=` +new Date(),})
+        //tambahkan new Date() agar pada saat gambar di update dia akan langsung ganti tanpa harus di refresh dahulu(karena ngambil dengan menggunakan path yang sama maka waktu disini akan menjadi pembeda)
+        res.send({user, photo : `http://localhost:2020/user/avatar/${id}?time=` +new Date()})
     } catch (err) {
         res.send(err)
     }
@@ -110,7 +110,7 @@ router.post('/user/login', async (req, res) => {
     let {email, password} = req.body
 
     try {
-        let user = await User.loginByEmailPassword(email, password)
+        let user = await User.login(email, password)
         //jika berhasil maka akan berisi data user
         res.send(user)
     } catch (err) {
@@ -121,18 +121,43 @@ router.post('/user/login', async (req, res) => {
 })
 
 //Update User By Id
-router.patch('/user/:_id', (req, res)=>{
+//karena mengirim melalui form data maka munculkan multer upload.single('avatar')
+router.patch('/user/:_id', upload.single('avatar'), async (req, res)=>{
     let _id = req.params._id
     let body = req.body
 
+    //isi ada di req.body
+    //Name : (ada isinya)
+    //Email : (ada isinya)
+    //Age : (ada isinya)
+    //Password : akan dicek apakah ada isinya
+    //isi dari req.file
+    //Select image : akan dicek apakah ada isinya
+
+    let keys = Object.keys(body)
     //dengan menggunakan callback yang merupakan es5
-    User.findByIdAndUpdate(_id, body, function(err, resp){
-        if(err){
-            return res.send(err)
+    try {
+        let user =await User.findById(_id)
+        // {'name', 'email', 'age', 'password'}
+        keys = keys.filter(key => {
+            return body[key]
+        })
+
+        //update Name, Email, Age, Password
+        keys.forEach(key => user[key] = req.body[key])
+
+        //Update avatar
+        //jika client mengirim gambar
+        if(req.file){
+            let avatar = await sharp(req.file.buffer).resize(200).png().toBuffer()
+            user.avatar = avatar
         }
-        res.send(resp)
-    })
-        
+
+        await user.save()
+        res.send('Update Berhasil')
+    } catch (error) {
+        res.send(error)
+    }
 })
 
 

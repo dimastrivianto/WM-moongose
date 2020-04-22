@@ -99,7 +99,7 @@ userSchema.pre('save', async function(next) {//mengganti password sebelum di sav
     next()
 })
 
-userSchema.statics.loginByEmailPassword= async (email, password) => {
+userSchema.statics.login= async (email, password) => {
 
     //cari user berdasarkan email
     let user = await User.findOne({email})
