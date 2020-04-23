@@ -96,7 +96,7 @@ router.get('/findbyid/:id', async (req, res)=>{
             return res.send({error: `User dengan id: ${id} tidak ditemukan`})
         }
         //tambahkan new Date() agar pada saat gambar di update dia akan langsung ganti tanpa harus di refresh dahulu(karena ngambil dengan menggunakan path yang sama maka waktu disini akan menjadi pembeda)
-        res.send({user, photo : `http://localhost:2020/user/avatar/${id}?time=` +new Date()})
+        res.send({user, photo : `https://dimas-mongoose-todos.herokuapp.com/user/avatar/${id}?time=` +new Date()})
     } catch (err) {
         res.send(err)
     }
