@@ -19,6 +19,7 @@ app.use(userRouter)
 app.use(taskRouter)
 
 //CONFIG MONGOOSE
+// kalau mau offline pakai mongodb
 // 'mongodb://127.0.0.1:27017/mongoose-test'
 //mongodb+srv://dimtriv:<password>@jcwm-bks-vezow.mongodb.net/test?retryWrites=true&w=majority
 const mongoose = require('mongoose')
