@@ -1,8 +1,13 @@
+//CONFIG ENV
+const dotenv = require('dotenv')
+dotenv.config()
+
+
 //CONFIG EXPRESS
 const express = require('express')
 const cors = require('cors')
 const app= express()
-const port = 2020
+const port = process.env.PORT // akan menggunakan port yang disediakan oleh heroku
 
 //IMPORT ROUTER
 const userRouter = require('./src/route/userRoute')
@@ -17,7 +22,7 @@ app.use(taskRouter)
 // 'mongodb://127.0.0.1:27017/mongoose-test'
 //mongodb+srv://dimtriv:<password>@jcwm-bks-vezow.mongodb.net/test?retryWrites=true&w=majority
 const mongoose = require('mongoose')
-mongoose.connect('mongodb+srv://dimtriv:indonesia@jcwm-bks-vezow.mongodb.net/todo-api?retryWrites=true&w=majority', {//mongoose-test nama database
+mongoose.connect(`mongodb+srv://dimtriv:${process.env.MONGO_PASSWORD}@jcwm-bks-vezow.mongodb.net/todo-api?retryWrites=true&w=majority`, {//mongoose-test nama database
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex : true,
